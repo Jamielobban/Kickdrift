@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 49ceebb8dd7d98e48a07b5a58ab402b9
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 155073
+  packageName: Stylized Smooth Clouds
+  packageVersion: 2.00
+  assetPath: Assets/CloudPack Smooth/Shaders/SimplexNoise3D.hlsl
+  uploadId: 441386
