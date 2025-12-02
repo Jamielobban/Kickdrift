@@ -69,23 +69,23 @@ Material:
     m_Floats:
     - Vector1_24AD96BF: 1
     - Vector1_44D50C1A: 0.5
-    - Vector1_4cbe0a3ccede429ebf63655279ca53c2: 0.15
+    - Vector1_4cbe0a3ccede429ebf63655279ca53c2: 0
     - Vector1_509FB0E6: 5
-    - Vector1_597b0e15632c46fabe9bfedf8ec2e3f7: 0.25
+    - Vector1_597b0e15632c46fabe9bfedf8ec2e3f7: 0
     - Vector1_7ABD5AC5: 0.05
     - Vector1_B80937A5: 0.25
     - Vector1_E4CC38DB: -0.75
-    - Vector1_c8ff704142b241648fc4133cb894e372: 0.15
-    - _AO_Strength: 0.766
+    - Vector1_c8ff704142b241648fc4133cb894e372: 0
+    - _AO_Strength: 0.708
     - _BackLight_Strength: 0.5
-    - _ColorFalloff: 0.3
-    - _CoreDarkness: -0.05
-    - _EdgeBrightness: 0.05
-    - _FuzzyPower: 0.5
-    - _HeigthOffset: -0.4
-    - _NoisePower: -0.8
+    - _ColorFalloff: 0.36
+    - _CoreDarkness: -0.15
+    - _EdgeBrightness: 8.09
+    - _FuzzyPower: 3
+    - _HeigthOffset: -0.36
+    - _NoisePower: -1.81
     - _NoiseStrength: 0.5
-    - _NoiseTiling: 4
+    - _NoiseTiling: -1.35
     - _Noise_Strength: 0.5
     - _QueueControl: 0
     - _QueueOffset: 0
