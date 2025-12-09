@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_BASE
+  m_Shader: {fileID: 4800000, guid: ba1f072dc03a6c14ab51f09d20c146dd, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _USE_NOISE
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HatchTex:
+        m_Texture: {fileID: 2800000, guid: cf34cf96a3a621f46b17653202362789, type: 3}
+        m_Scale: {x: 0.2, y: 0.2}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _EtchDarkFactor: 0.715
+    - _EtchEnd: 0.587
+    - _EtchStrength: 0.56
+    - _HatchOpacity: 5
+    - _NoiseScale: 1
+    - _NoiseSpeed: 1
+    - _NoiseStrength: 0.057
+    - _NoiseToggle: 1
+    - _RampSmoothness: 0.174
+    - _RampThreshold: 0.367
+    - _RimBandEnd: 1
+    - _RimBandStart: 0.772
+    - _RimEtchBase: 0.3
+    - _RimEtchStart: 0.6
+    - _RimEtchStrength: 1.87
+    - _RimHardStart: 0.8
+    - _RimIntensity: 1.5
+    - _RimPower: 0.75
+    - _RimSolidEnd: 1
+    - _RimSolidStart: 0.854
+    - _ShadowEnd: 0
+    m_Colors:
+    - _BaseColor: {r: 0.16981131, g: 0.16981131, b: 0.16981131, a: 1}
+    - _GlobalColor: {r: 1, g: 1, b: 1, a: 1}
+    - _HatchTiling: {r: 8, g: 8, b: 0, a: 0}
+    - _RimEtchColor: {r: 2, g: 2, b: 0, a: 1}
+    - _RimSolidColor: {r: 1, g: 0.7106599, b: 0, a: 1}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
