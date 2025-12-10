@@ -51,7 +51,7 @@ Material:
     - _RimEtchStrength: 1.87
     - _RimHardStart: 0.8
     - _RimIntensity: 1.5
-    - _RimPower: 0.75
+    - _RimPower: 0.7
     - _RimSolidEnd: 1
     - _RimSolidStart: 0.854
     - _ShadowEnd: 0

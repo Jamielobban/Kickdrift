@@ -309,7 +309,7 @@ namespace ArcadeVP
                 float jumpForceThisFrame = Mathf.Lerp(minJumpForce, maxJumpForce, charge01);
 
                 float jumpCost = Mathf.Lerp(jumpBoostMinCost, jumpBoostMaxCost, charge01);
-                Debug.Log(jumpCost);
+                //Debug.Log(jumpCost);
 
                 bool readyToLaunch = jumpChargeTimer >= preLaunchSquatTime;
                 bool released = !jumpHeld;

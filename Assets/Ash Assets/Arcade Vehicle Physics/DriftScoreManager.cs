@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using MoreMountains.Feedbacks;
 
 namespace ArcadeVP
 {
@@ -20,65 +21,78 @@ namespace ArcadeVP
 
         [Header("Base Scoring")]
         public float basePointsPerSecond = 100f;
-        public float maxCombo            = 10f;
+        public float maxCombo = 10f;
 
         [Header("Combo Behaviour")]
-        public float comboGainSpeed  = 1.5f;   // how fast combo builds while drifting
+        public float comboGainSpeed = 1.5f;    // how fast combo builds while drifting
         public float comboDecaySpeed = 3f;     // how fast combo shrinks when not drifting
-        public float comboGraceTime  = 0.6f;   // time after drift ends before combo decays
+        public float comboGraceTime = 0.6f;    // time after drift ends before combo decays
 
         [Header("Bonuses")]
-        public float entryBonus       = 150f;
-        public float transitionBonus  = 200f;
+        public float entryBonus = 150f;
+        public float transitionBonus = 200f;
 
         [Header("Near Miss")]
         public LayerMask nearMissLayers;
-        public float nearMissRadius        = 2.0f;
-        public float nearMissBonusPerSec   = 75f;
-        public float wallScrapeDistance    = 1.0f;
-        public float wallScrapeTime        = 0.4f;
-        public float wallScrapeBonus       = 250f;
+        public float nearMissRadius = 2.0f;
+        public float nearMissBonusPerSec = 75f;
+        public float wallScrapeDistance = 1.0f;
+        public float wallScrapeTime = 0.4f;
+        public float wallScrapeBonus = 250f;
 
         [Header("Trick Bonuses")]
-        public float spinLandingBonus   = 300f;  // 360 / yaw spin
-        public float frontflipBonus     = 400f;
-        public float backflipBonus      = 400f;
-        public float barrelRollBonus    = 450f;  // if you use barrel rolls later
-        public bool onlyCleanLandings   = true;  // require clean to get bonus
+        public float spinLandingBonus = 300f;   // 360 / yaw spin
+        public float frontflipBonus = 400f;
+        public float backflipBonus = 400f;
+        public float barrelRollBonus = 450f;    // if you use barrel rolls later
+        public bool onlyCleanLandings = true;   // require clean to get bonus
 
         [Header("Trick Combo Scoring")]
-        public float pointsPer360Spin       = 200f;   // 1 rev
-        public float pointsPerFlip          = 300f;   // each flip
-        public float pointsPerRoll          = 350f;   // each barrel roll
+        public float pointsPer360Spin = 200f;   // 1 rev
+        public float pointsPerFlip = 300f;      // each flip
+        public float pointsPerRoll = 350f;      // each barrel roll
         public float sloppyLandingMultiplier = 0.4f;  // if you still want some points
-        public bool zeroPointsOnSloppy      = false;  // if true, no points when not clean
+        public bool zeroPointsOnSloppy = false;       // if true, no points when not clean
 
         [Header("On Fire Mode")]
-        public float fireMinIntensity   = 0.7f;  // driftIntensity
-        public float fireMinSpeedNorm   = 0.7f;  // normalized speed
-        public float fireDuration       = 2f;
+        public float fireMinIntensity = 0.7f;   // driftIntensity
+        public float fireMinSpeedNorm = 0.7f;   // normalized speed
+        public float fireDuration = 2f;
         public float fireScoreMultiplier = 2f;
+
+        [Header("Floating Text (More Mountains)")]
+        public MMF_Player bonusFloatingTextPlayer;   // MMF_Player that has MMF_FloatingText
 
         float score;
         float combo = 1f;
         float graceTimer;
-        bool  wasDrifting;
+        bool wasDrifting;
 
         float lastSteerSign;
         float scrapeTimer;
-        bool  onFire;
+        bool onFire;
         float fireTimer;
+
+        MMF_FloatingText _bonusFloatingText;   // cached feedback
+
+        void Awake()
+        {
+            if (bonusFloatingTextPlayer != null)
+            {
+                _bonusFloatingText = bonusFloatingTextPlayer.GetFeedbackOfType<MMF_FloatingText>();
+            }
+        }
 
         void OnEnable()
         {
             GameSignals.OnTrickLanded += HandleTrickLanded;
-             GameSignals.OnTrickProgress += HandleTrickProgress;   // NEW
+            GameSignals.OnTrickProgress += HandleTrickProgress;
         }
 
         void OnDisable()
         {
             GameSignals.OnTrickLanded -= HandleTrickLanded;
-            GameSignals.OnTrickProgress -= HandleTrickProgress;   // NEW
+            GameSignals.OnTrickProgress -= HandleTrickProgress;
         }
 
         void Update()
@@ -87,10 +101,10 @@ namespace ArcadeVP
 
             float dt = Time.deltaTime;
 
-            bool drifting     = car.isDrifting;
-            float intensity   = Mathf.Clamp01(car.driftIntensity);
-            float fwdSpeed    = Mathf.Abs(car.carVelocity.z);
-            float speedNorm   = Mathf.Clamp01(fwdSpeed / Mathf.Max(1f, car.MaxSpeed));
+            bool drifting = car.isDrifting;
+            float intensity = Mathf.Clamp01(car.driftIntensity);
+            float fwdSpeed = Mathf.Abs(car.carVelocity.z);
+            float speedNorm = Mathf.Clamp01(fwdSpeed / Mathf.Max(1f, car.MaxSpeed));
             float speedFactor = speedCurve.Evaluate(speedNorm);
 
             // ---------- NEAR MISS / WALL SCRAPE ----------
@@ -119,7 +133,7 @@ namespace ArcadeVP
             // ---------- ON FIRE STATE ----------
             if (!onFire && drifting && intensity > fireMinIntensity && speedNorm > fireMinSpeedNorm && nearWall)
             {
-                onFire   = true;
+                onFire = true;
                 fireTimer = fireDuration;
                 // you can trigger extra VFX/SFX here
             }
@@ -135,7 +149,7 @@ namespace ArcadeVP
             {
                 // grow combo based on angle/intensity
                 combo += comboGainSpeed * intensity * dt;
-                combo  = Mathf.Clamp(combo, 1f, maxCombo);
+                combo = Mathf.Clamp(combo, 1f, maxCombo);
 
                 float fireMult = onFire ? fireScoreMultiplier : 1f;
 
@@ -166,17 +180,15 @@ namespace ArcadeVP
             // ---------- TRANSITION BONUS (switch drift direction) ----------
             float steerSign = Mathf.Sign(car.steeringInputPublic);
 
-           if (drifting && Mathf.Abs(steerSign) > 0.2f && Mathf.Abs(lastSteerSign) > 0.2f)
+            if (drifting && Mathf.Abs(steerSign) > 0.2f && Mathf.Abs(lastSteerSign) > 0.2f)
             {
-                //Debug.Log("TEST ON DRIFT SWITCH");
-
-                if (Mathf.Sign(steerSign) != Mathf.Sign(lastSteerSign))
-                {
-                    //AddBonus(transitionBonus, "SWITCH");
-                    //Debug.Log("SWITCHED");
-                }
+                //if (Mathf.Sign(steerSign) != Mathf.Sign(lastSteerSign))
+                //{
+                //    AddBonus(transitionBonus, "SWITCH");
+                //}
             }
             lastSteerSign = steerSign;
+            wasDrifting = drifting;
 
             // ---------- UI ----------
             if (scoreText) scoreText.text = Mathf.FloorToInt(score).ToString();
@@ -201,7 +213,7 @@ namespace ArcadeVP
             scraping = false;
 
             Vector3 origin = car.carBody.transform.position;
-            Vector3 right  = car.carBody.transform.right;
+            Vector3 right = car.carBody.transform.right;
 
             RaycastHit hit;
 
@@ -220,10 +232,12 @@ namespace ArcadeVP
             }
         }
 
+        // ---------- A) AddBonus hooked to More Mountains floating text ----------
         void AddBonus(float amount, string label)
         {
             score += amount;
 
+            // Old popupText HUD (optional, still works)
             if (popupText)
             {
                 popupText.text = label + "  +" + Mathf.RoundToInt(amount);
@@ -231,26 +245,27 @@ namespace ArcadeVP
                 c.a = 1f;
                 popupText.color = c;
             }
+
+            // More Mountains floating text
+            if (bonusFloatingTextPlayer != null && _bonusFloatingText != null)
+            {
+                _bonusFloatingText.Value = $"{label}  +{Mathf.RoundToInt(amount)}";
+
+                Vector3 spawnPos = car != null
+                    ? car.carBody.transform.position
+                    : transform.position;
+
+                bonusFloatingTextPlayer.PlayFeedbacks(spawnPos);
+            }
         }
 
         void HandleTrickLanded(TrickLandingInfo info)
         {
-            // Debug so you can see what happened
-            //Debug.Log(
-                //$"TRICK LANDING:\n" +
-                //$"- Clean:          {info.clean}\n" +
-                //$"- FullyCompleted: {info.fullyCompleted}\n" +
-                //$"- Spins:          {info.yawRevolutions}\n" +
-                //$"- Flips:          {info.flipCount}\n" +
-                //$"- Rolls:          {info.rollCount}\n" +
-                //$"- LastType:       {info.lastType}"
-            //);
-
             // ---- Bail rule: any flip + bad timing or bad orientation ----
-            bool didFlip       = info.flipCount > 0;
-            bool badTilt       = !info.clean;
-            bool badTiming     = !info.fullyCompleted;
-            bool bailThisFlip  = didFlip && (badTilt || badTiming);
+            bool didFlip = info.flipCount > 0;
+            bool badTilt = !info.clean;
+            bool badTiming = !info.fullyCompleted;
+            bool bailThisFlip = didFlip && (badTilt || badTiming);
 
             if (bailThisFlip)
             {
@@ -261,8 +276,8 @@ namespace ArcadeVP
             // ---- Normal trick scoring if not bailed ----
             float basePoints = 0f;
             basePoints += info.yawRevolutions * pointsPer360Spin;
-            basePoints += info.flipCount      * pointsPerFlip;
-            basePoints += info.rollCount      * pointsPerRoll;
+            basePoints += info.flipCount * pointsPerFlip;
+            basePoints += info.rollCount * pointsPerRoll;
 
             if (basePoints <= 0f) return;
 
@@ -275,7 +290,6 @@ namespace ArcadeVP
             string label = BuildTrickLabel(info);  // "360", "720", "FLIP", etc
             AddBonus(final, label);
         }
-
 
         void HandleTrickProgress(TrickProgressInfo info)
         {
@@ -332,7 +346,6 @@ namespace ArcadeVP
 
             return "";
         }
-
 
         public float CurrentScore => score;
         public float CurrentCombo => combo;

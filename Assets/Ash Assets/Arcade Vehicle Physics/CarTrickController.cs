@@ -108,7 +108,7 @@ namespace ArcadeVP
         // --- CHARGE CONSUMPTION: spend 1 charge RIGHT NOW ---
         if (trickChargeManager != null)
         {
-            Debug.Log(trickChargeManager);
+            //Debug.Log(trickChargeManager);
             if (!trickChargeManager.TryConsumeCharge())
             {
                 Debug.Log(trickChargeManager.TryConsumeCharge());

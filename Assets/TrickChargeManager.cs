@@ -78,7 +78,7 @@ namespace ArcadeVP
 
         public bool TryConsumeCharge()
         {
-            Debug.Log(CurrentCharges);
+            //Debug.Log(CurrentCharges);
             if (CurrentCharges <= 0)
                 return false;
 
