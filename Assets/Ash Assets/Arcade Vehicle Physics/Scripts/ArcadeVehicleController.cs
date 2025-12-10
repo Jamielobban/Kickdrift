@@ -30,7 +30,7 @@ namespace ArcadeVP
 
         public AnimationCurve frictionCurve;
         public AnimationCurve turnCurve;
-        public PhysicsMaterial frictionMaterial; // use PhysicMaterial if that's what your project has
+        public PhysicsMaterial frictionMaterial;
 
         [Header("Visuals")]
         public Transform BodyMesh;
@@ -49,7 +49,7 @@ namespace ArcadeVP
         public float MaxPitch = 2.0f;
         public AudioSource SkidSound;
 
-        // ---------------- NOS ------------------
+        // ---------------- NOS / Boost ------------------
         [Header("NOS / Boost")]
         public float nosAmount = 0f;
         public float nosMax = 100f;
@@ -65,8 +65,8 @@ namespace ArcadeVP
         // ---------------- Jump Timing / Charge ------------------
         [Header("Jump Timing")]
         public float jumpCooldown = 0.2f;
-        public float coyoteTime = 0.15f;          // after leaving ground
-        public float jumpBufferTime = 0.15f;      // press slightly before allowed
+        public float coyoteTime = 0.15f;
+        public float jumpBufferTime = 0.15f;
 
         [Header("Jump / Boost Gauge")]
         public float jumpBoostMax = 100f;
@@ -81,28 +81,25 @@ namespace ArcadeVP
         [Header("Chargeable Jump")]
         public float minJumpForce = 6f;
         public float maxJumpForce = 14f;
-        public float maxChargeTime = 0.7f;        // time to reach max power
-        public float preLaunchSquatTime = 0.05f;  // minimal charge before we can actually leave ground
+        public float maxChargeTime = 0.7f;
+        public float preLaunchSquatTime = 0.05f;
 
-        // internal jump state
         bool isChargingJump;
         float jumpChargeTimer;
         float jumpCooldownTimer;
         float lastGroundedTime;
-        float jumpPressBufferTimer;               // buffered press
+        float jumpPressBufferTimer;
 
-        // input tracking
-        bool jumpHeld;                            // current hold state
+        bool jumpHeld;
 
-        // for tricks
         public bool hasLaunchedThisJump { get; private set; }
         bool wasGroundedLastFrame;
 
         // ---------------- Jump Visuals ------------------
         [Header("Jump Visuals")]
-        public float jumpSquashDistance = 0.25f;  // how much the body lowers when charging
-        public float jumpSquashTime = 0.10f;      // how fast it squats
-        public float jumpReleaseTime = 0.08f;     // how fast it pops back
+        public float jumpSquashDistance = 0.25f;
+        public float jumpSquashTime = 0.10f;
+        public float jumpReleaseTime = 0.08f;
 
         Vector3 bodyMeshBaseLocalPos;
         Tween jumpSquashTween;
@@ -115,6 +112,7 @@ namespace ArcadeVP
         float airTime;
 
         [Header("Air Upright Assist")]
+        public bool enableAirUprightAssist = false;
         public float airUprightStrength = 2f;
 
         // ---------------- States ------------------
@@ -122,8 +120,6 @@ namespace ArcadeVP
         float steeringInput;
         float accelInput;
         float brakeInput;
-
-        Vector3 origin;
 
         [HideInInspector] public float slip;
         [HideInInspector] public float driftIntensity;
@@ -158,10 +154,8 @@ namespace ArcadeVP
 
         public void SetBoost(bool held) => boostInput = held;
 
-        // Call this with the HELD state from your input (true while button is down)
         public void SetJump(bool held)
         {
-            // rising edge: newly pressed this frame -> start/refresh buffer
             if (held && !jumpHeld)
             {
                 jumpPressBufferTimer = jumpBufferTime;
@@ -189,17 +183,16 @@ namespace ArcadeVP
 
             carVelocity = carBody.transform.InverseTransformDirection(carBody.linearVelocity);
 
-            ComputeDrift();
-            HandleNOS(dt);
-
             bool onGround = grounded();
+
+            ComputeDrift(onGround);
+            HandleNOS(dt, onGround);
 
             // grounded / air timing
             if (onGround)
             {
                 if (!wasGroundedLastFrame)
                 {
-                    // just landed -> reset jump state for next one
                     hasLaunchedThisJump = false;
                     isChargingJump = false;
                     jumpChargeTimer = 0f;
@@ -208,11 +201,12 @@ namespace ArcadeVP
 
                 lastGroundedTime = Time.time;
 
-                // kill downward velocity when hugging ground
+                // remove only velocity into the ground, not tangential
                 Vector3 v = rb.linearVelocity;
-                if (v.y < 0f)
+                float intoGround = Vector3.Dot(v, hit.normal); // < 0 means into surface
+                if (intoGround < 0f)
                 {
-                    v.y = 0f;
+                    v -= hit.normal * intoGround;
                     rb.linearVelocity = v;
                 }
 
@@ -223,7 +217,6 @@ namespace ArcadeVP
                 airTime += dt;
             }
 
-            // tick timers
             if (jumpPressBufferTimer > 0f)
                 jumpPressBufferTimer -= dt;
             if (jumpCooldownTimer > 0f)
@@ -235,31 +228,34 @@ namespace ArcadeVP
             wasGroundedLastFrame = onGround;
         }
 
-        void ComputeDrift()
+        void ComputeDrift(bool onGround)
         {
             float side = Mathf.Abs(carVelocity.x);
-            float fwd = Mathf.Abs(carVelocity.z);
+            float fwd  = Mathf.Abs(carVelocity.z);
             float speed = carVelocity.magnitude;
 
             slip = side / (fwd + 0.1f);
             driftIntensity = Mathf.Clamp01(Mathf.InverseLerp(0.25f, 0.65f, slip));
 
-            isDrifting = grounded() && speed > 15f && slip > 0.30f;
+            bool steep = onGround && hit.normal.y < 0.6f;  // steep surfaces: no drift mode
+
+            isDrifting = onGround && !steep && speed > 15f && slip > 0.30f;
 
             if (Mathf.Abs(carVelocity.x) > 0 && frictionCurve != null && frictionMaterial != null)
             {
-                frictionMaterial.dynamicFriction =
-                    frictionCurve.Evaluate(Mathf.Abs(carVelocity.x / 100));
+                float t = Mathf.Abs(carVelocity.x / 100f);
+                float f = frictionCurve.Evaluate(t);
+                frictionMaterial.dynamicFriction = Mathf.Clamp(f, 0.4f, 1f); // avoid ice
             }
         }
 
         // ---------------- NOS ------------------
-        void HandleNOS(float dt)
+        void HandleNOS(float dt, bool onGround)
         {
             if (isDrifting)
                 nosAmount = Mathf.Clamp(nosAmount + driftIntensity * nosGainRate * dt, 0, nosMax);
 
-            if (boostInput && nosAmount > minNosToBoost && grounded())
+            if (boostInput && nosAmount > minNosToBoost && onGround)
             {
                 if (!isBoosting)
                     GameSignals.RaiseBoostStarted();
@@ -284,23 +280,20 @@ namespace ArcadeVP
         // ---------------- CHARGEABLE JUMP ------------------
         void HandleJump(bool onGround, float dt)
         {
-            // can we start a new charge? (grounded OR within coyote window)
             bool withinCoyote = Time.time - lastGroundedTime <= coyoteTime;
             bool canStartNewCharge = onGround || withinCoyote;
 
             bool bufferedPress = jumpPressBufferTimer > 0f;
 
-            // --- START CHARGE ---
             if (bufferedPress && !isChargingJump && jumpCooldownTimer <= 0f && canStartNewCharge)
             {
                 isChargingJump = true;
                 jumpChargeTimer = 0f;
-                jumpPressBufferTimer = 0f; // consume buffer
+                jumpPressBufferTimer = 0f;
 
                 StartJumpChargeVisual();
             }
 
-            // --- CHARGING ---
             if (isChargingJump)
             {
                 jumpChargeTimer += dt;
@@ -309,17 +302,14 @@ namespace ArcadeVP
                 float jumpForceThisFrame = Mathf.Lerp(minJumpForce, maxJumpForce, charge01);
 
                 float jumpCost = Mathf.Lerp(jumpBoostMinCost, jumpBoostMaxCost, charge01);
-                //Debug.Log(jumpCost);
 
                 bool readyToLaunch = jumpChargeTimer >= preLaunchSquatTime;
                 bool released = !jumpHeld;
 
-                // require enough NOS to jump at all (optional but recommended)
                 if (readyToLaunch && released)
                 {
                     if (nosAmount < jumpBoostMinCost)
                     {
-                        // not enough energy to jump, just cancel charge
                         isChargingJump = false;
                         jumpChargeTimer = 0f;
                         EndJumpChargeVisual();
@@ -330,7 +320,6 @@ namespace ArcadeVP
                     EndJumpChargeVisual();
                 }
 
-                // tap too fast before squat finished -> cancel charge + visuals
                 if (!jumpHeld && jumpChargeTimer < preLaunchSquatTime)
                 {
                     isChargingJump = false;
@@ -338,7 +327,6 @@ namespace ArcadeVP
                     EndJumpChargeVisual();
                 }
 
-                // optional: if we left the ground very early during the tiny squat, cancel
                 if (!onGround && jumpChargeTimer < preLaunchSquatTime)
                 {
                     isChargingJump = false;
@@ -348,7 +336,7 @@ namespace ArcadeVP
             }
         }
 
-       void DoJump(float force, float cost)
+        void DoJump(float force, float cost)
         {
             jumpCooldownTimer = jumpCooldown;
 
@@ -357,7 +345,6 @@ namespace ArcadeVP
             vel.y += force;
             rb.linearVelocity = vel;
 
-            // spend NOS as energy
             nosAmount -= cost;
             if (nosAmount < 0f) nosAmount = 0f;
 
@@ -407,32 +394,46 @@ namespace ArcadeVP
                 turnMul *= driftMultiplier;
 
             float turnTorque = steeringInput * turn * 100f * turnMul;
+
             if (!airControlLocked)
             {
-                carBody.AddTorque(Vector3.up * turnTorque);
+                // steer around car local up; optionally scale on walls if needed
+                float wallSteerMul = 1f;
+                if (onGround)
+                {
+                    // 1 on flat ground, ~0.3 on vertical wall
+                    wallSteerMul = Mathf.Clamp01(hit.normal.y + 0.3f);
+                }
+
+                carBody.AddTorque(carBody.transform.up * turnTorque * wallSteerMul);
             }
 
             if (onGround)
             {
-                rb.AddForce(-transform.up * downforce * rb.mass);
+                // downforce along surface normal
+                Vector3 groundNormal = hit.normal != Vector3.zero ? hit.normal : transform.up;
+                rb.AddForce(-groundNormal * downforce * rb.mass, ForceMode.Acceleration);
 
                 carBody.MoveRotation(Quaternion.Slerp(
                     carBody.rotation,
-                    Quaternion.FromToRotation(carBody.transform.up, hit.normal) * carBody.rotation,
+                    Quaternion.FromToRotation(carBody.transform.up, groundNormal) * carBody.rotation,
                     0.12f));
             }
             else
             {
-                // upright assist
-                Quaternion uprightTarget = Quaternion.FromToRotation(
-                    carBody.transform.up,
-                    Vector3.up
-                ) * carBody.rotation;
+                // optional upright assist in air
+                if (enableAirUprightAssist && airUprightStrength > 0f)
+                {
+                    Quaternion uprightTarget = Quaternion.FromToRotation(
+                        carBody.transform.up,
+                        Vector3.up
+                    ) * carBody.rotation;
 
-                carBody.MoveRotation(Quaternion.Slerp(
-                    carBody.rotation,
-                    uprightTarget,
-                    airUprightStrength * dt));
+                    carBody.MoveRotation(Quaternion.Slerp(
+                        carBody.rotation,
+                        uprightTarget,
+                        airUprightStrength * dt));
+                }
 
                 // progressive gravity
                 float gravityMul = 1f + airTime * airGravityRamp;
@@ -448,11 +449,19 @@ namespace ArcadeVP
 
             if (movementMode == MovementMode.Velocity)
             {
-                if (Mathf.Abs(accelInput) > 0.1f)
+                if (onGround && Mathf.Abs(accelInput) > 0.1f)
                 {
+                    Vector3 driveDir = carBody.transform.forward;
+
+                    if (hit.normal != Vector3.zero)
+                    {
+                        // project forward onto ramp so you drive along it, not into it
+                        driveDir = Vector3.ProjectOnPlane(driveDir, hit.normal).normalized;
+                    }
+
                     rb.linearVelocity = Vector3.Lerp(
                         rb.linearVelocity,
-                        carBody.transform.forward * accelInput * (MaxSpeed * speedBoostMul),
+                        driveDir * accelInput * (MaxSpeed * speedBoostMul),
                         (accelaration * accelBoostMul) / 10f * Time.deltaTime);
                 }
             }
@@ -515,23 +524,44 @@ namespace ArcadeVP
         // ---------------- GROUND CHECK ------------------
         public bool grounded()
         {
-            origin = rb.position + radius * Vector3.up;
-            float maxDist = radius + 0.2f;
+            // use car's visual/physics up so the ray tilts with the ramp
+            Vector3 up   = carBody.transform.up;
+            Vector3 down = -up;
+
+            float maxDist = radius + 0.1f;
+            Vector3 origin = rb.position + up * radius;
 
             if (GroundCheck == groundCheck.rayCast)
             {
-                return Physics.Raycast(rb.position, Vector3.down, out hit, maxDist, drivableSurface);
+                bool hitSomething = Physics.Raycast(origin, down, out hit, maxDist, drivableSurface);
+
+                // debug draw
+                Debug.DrawLine(origin,
+                               origin + down * maxDist,
+                               hitSomething ? Color.green : Color.red);
+                if (hitSomething)
+                    Debug.DrawRay(hit.point, hit.normal * 0.5f, Color.yellow);
+
+                return hitSomething;
             }
             else if (GroundCheck == groundCheck.sphereCaste)
             {
-                return Physics.SphereCast(
+                bool hitSomething = Physics.SphereCast(
                     origin,
                     radius + 0.1f,
-                    Vector3.down,
+                    down,
                     out hit,
                     maxDist,
                     drivableSurface
                 );
+
+                Debug.DrawLine(origin,
+                               origin + down * maxDist,
+                               hitSomething ? Color.green : Color.red);
+                if (hitSomething)
+                    Debug.DrawRay(hit.point, hit.normal * 0.5f, Color.yellow);
+
+                return hitSomething;
             }
 
             return false;
