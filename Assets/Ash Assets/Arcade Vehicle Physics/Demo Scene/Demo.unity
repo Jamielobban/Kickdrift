@@ -37600,89 +37600,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2d69c44041501f4aab1c355410d67b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementMode: 0
-  GroundCheck: 0
-  drivableSurface:
-    serializedVersion: 2
-    m_Bits: 64
-  MaxSpeed: 100
-  accelaration: 10
-  turn: 9
-  gravity: 11
-  downforce: 8
-  kartLike: 0
-  driftMultiplier: 1.25
-  maxDriftYaw: 20
-  driftVisualLerpSpeed: 5
   rb: {fileID: 658997376}
   carBody: {fileID: 1957635000}
-  frictionCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 4
-      outSlope: 4
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 5
-      inSlope: 3.8879316
-      outSlope: 3.8879316
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.049401224
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  turnCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 13.671466
-      outSlope: 13.671466
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0.02106388
-    - serializedVersion: 3
-      time: 0.02176705
-      value: 0.2049678
-      inSlope: 2.8135772
-      outSlope: 2.8135772
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.06324596
-    - serializedVersion: 3
-      time: 0.5297072
-      value: 0.78483945
-      inSlope: -0.1730383
-      outSlope: -0.1730383
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.12504984
-      outWeight: 0.15276818
-    - serializedVersion: 3
-      time: 1
-      value: 0.49161643
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  frictionMaterial: {fileID: 13400000, guid: ce8f2e0169709cc4da4d8131aec6cef1, type: 2}
   BodyMesh: {fileID: 1002423030}
   FrontWheels:
   - {fileID: 1333533079}
@@ -37690,45 +37609,128 @@ MonoBehaviour:
   RearWheels:
   - {fileID: 2116511227}
   - {fileID: 2057599777}
-  BodyTilt: 10
   skidWidth: 0.17504609
-  carVelocity: {x: 0, y: 0, z: 0}
+  movementMode: 0
+  movement:
+    groundCheckMode: 1
+    drivableSurface:
+      serializedVersion: 2
+      m_Bits: 0
+    groundRayExtra: 0.3
+    MaxSpeed: 60
+    accelaration: 30
+    turn: 8
+    turnCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 1.219341
+        outSlope: 1.219341
+        tangentMode: 34
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.701347
+        value: 0.85518116
+        inSlope: 0.5648694
+        outSlope: 0.5648694
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.22807103
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0.4849067
+        outSlope: 0.4849067
+        tangentMode: 34
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    kartLike: 0
+    driftMultiplier: 1.5
+    downforce: 5
+    airGravityBase: 9.81
+    airGravityRamp: 2
+    airGravityMaxMultiplier: 3
+    enableAirUprightAssist: 0
+    airUprightStrength: 2
+  drift:
+    frictionCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 2.3454947
+        outSlope: 2.3454947
+        tangentMode: 34
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.17676681
+        value: 1.4146056
+        inSlope: 1.6194739
+        outSlope: 1.6194739
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.050250266
+      - serializedVersion: 3
+        time: 0.9955168
+        value: 1.6915519
+        inSlope: -0.27235746
+        outSlope: -0.27235746
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.10390741
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    frictionMaterial: {fileID: 13400000, guid: ce8f2e0169709cc4da4d8131aec6cef1, type: 2}
+    minDriftSpeed: 15
+    minSlip: 0.3
+    steepCutoffY: 0.6
+  nos:
+    nosAmount: 0
+    nosMax: 100
+    nosGainRate: 25
+    nosUseRate: 40
+    nosSpeedMultiplier: 1.35
+    nosAccelMultiplier: 1.5
+    minNosToBoost: 5
+  jump:
+    jumpCooldown: 0.2
+    coyoteTime: 0.15
+    jumpBufferTime: 0.15
+    minJumpForce: 6
+    maxJumpForce: 14
+    maxChargeTime: 0.7
+    preLaunchSquatTime: 0.05
+    jumpSquashDistance: 0.25
+    jumpSquashTime: 0.1
+    jumpReleaseTime: 0.08
   engineSound: {fileID: 1957634999}
   minPitch: 0.3
   MaxPitch: 3
   SkidSound: {fileID: 1957634998}
-  nosAmount: 20
-  nosMax: 100
-  nosGainRate: 25
-  nosUseRate: 40
-  nosSpeedMultiplier: 1.35
-  nosAccelMultiplier: 1.5
-  minNosToBoost: 5
-  isBoosting: 0
-  boostInput: 0
-  jumpCooldown: 0.5
-  coyoteTime: 0.15
-  jumpBufferTime: 0.15
-  jumpBoostMax: 100
-  jumpBoostGainRate: 25
-  jumpBoostMinCost: 1
-  jumpBoostMaxCost: 2
-  jumpBoostCurrent: 0
-  minJumpForce: 40
-  maxJumpForce: 65
-  maxChargeTime: 0.7
-  preLaunchSquatTime: 0.1
-  jumpSquashDistance: 0.05
-  jumpSquashTime: 0.5
-  jumpReleaseTime: 0.08
-  airGravityBase: 11
-  airGravityRamp: 18
-  airGravityMaxMultiplier: 5
-  enableAirUprightAssist: 0
-  airUprightStrength: 2
+  BodyTilt: 10
+  isGrounded: 0
+  carVelocity: {x: 0, y: 0, z: 0}
   slip: 0
   driftIntensity: 0
   isDrifting: 0
+  isBoosting: 0
+  boostInput: 0
+  hasLaunchedThisJump: 0
   steeringInputPublic: 0
 --- !u!114 &1957635002
 MonoBehaviour:

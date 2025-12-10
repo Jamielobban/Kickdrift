@@ -22,7 +22,7 @@ namespace ArcadeVP
             if (!info.clean) return;
 
             // reward NOS
-            car.nosAmount = Mathf.Clamp(car.nosAmount + nosReward, 0f, car.nosMax);
+            car.nos.nosAmount = Mathf.Clamp(car.nos.nosAmount + nosReward, 0f, car.nos.nosMax);
             //Debug.Log(";anded");
             // later: trigger small auto-boost, SFX, particles, camera shake, etc.
         }

@@ -229,7 +229,7 @@ namespace ArcadeVP
             Vector3 origin = car.rb.position;
             Vector3 dir = Vector3.down;
 
-            if (Physics.Raycast(origin, dir, out hit, groundRayLength, car.drivableSurface))
+            if (Physics.Raycast(origin, dir, out hit, groundRayLength, car.movement.drivableSurface))
             {
                 // hit distance is how far we are from the drivable surface
                 return hit.distance >= minTrickHeight;

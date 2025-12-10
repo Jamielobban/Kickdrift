@@ -104,7 +104,7 @@ namespace ArcadeVP
             bool drifting = car.isDrifting;
             float intensity = Mathf.Clamp01(car.driftIntensity);
             float fwdSpeed = Mathf.Abs(car.carVelocity.z);
-            float speedNorm = Mathf.Clamp01(fwdSpeed / Mathf.Max(1f, car.MaxSpeed));
+            float speedNorm = Mathf.Clamp01(fwdSpeed / Mathf.Max(1f, car.movement.MaxSpeed));
             float speedFactor = speedCurve.Evaluate(speedNorm);
 
             // ---------- NEAR MISS / WALL SCRAPE ----------

@@ -12,7 +12,7 @@ public class EnergyGaugeUI : MonoBehaviour
         if (slider != null)
         {
             slider.minValue = 0f;
-            slider.maxValue = vehicle.nosMax;
+            slider.maxValue = vehicle.nos.nosMax;
         }
     }
 
@@ -20,6 +20,6 @@ public class EnergyGaugeUI : MonoBehaviour
     {
         if (vehicle == null || slider == null) return;
 
-        slider.value = vehicle.nosAmount;
+        slider.value = vehicle.nos.nosAmount;
     }
 }
