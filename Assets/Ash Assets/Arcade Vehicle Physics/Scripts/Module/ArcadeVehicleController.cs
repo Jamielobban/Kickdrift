@@ -6,6 +6,8 @@ using DG.Tweening;
         public enum GroundCheckMode { RayCast, SphereCast }
         public enum MovementMode { Velocity, AngularVelocity };
 
+        [HideInInspector] public BowlZone activeBowl;
+
         [Header("Refs")]
         public Rigidbody rb;          // sphere
         public Rigidbody carBody;     // visual/physics body
@@ -195,6 +197,25 @@ using DG.Tweening;
         {
             // for old scripts that call car.grounded()
             return isGrounded;
+        }
+
+
+        void OnTriggerEnter(Collider other)
+        {
+            var bowl = other.GetComponent<BowlZone>();
+            if (bowl != null)
+        {
+                Debug.Log("Entered");
+                activeBowl = bowl;
+            
+        }
+        }
+
+        void OnTriggerExit(Collider other)
+        {
+            var bowl = other.GetComponent<BowlZone>();
+            if (bowl != null && activeBowl == bowl)
+                activeBowl = null;
         }
 
         // ------------ DEBUG GUI ------------

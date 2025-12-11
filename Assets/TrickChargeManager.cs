@@ -55,7 +55,7 @@ namespace ArcadeVP
             }
 
             // optional: gain a bit while in air
-            if (!car.grounded())
+            if (!car.isGrounded)
             {
                 GainXP(airXpPerSecond * dt);
             }
