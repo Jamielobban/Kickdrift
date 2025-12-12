@@ -50,6 +50,7 @@ using DG.Tweening;
         [HideInInspector] public bool isBoosting;
         [HideInInspector] public bool boostInput;
         [HideInInspector] public bool hasLaunchedThisJump;   // used by other scripts
+        bool edgeWarnedThisAir;
 
         float steeringInput;
         float accelInput;
@@ -77,30 +78,53 @@ using DG.Tweening;
             AudioUpdate();
         }
 
+
         void FixedUpdate()
         {
             float dt = Time.fixedDeltaTime;
 
-            // local velocity
             carVelocity = carBody.transform.InverseTransformDirection(carBody.linearVelocity);
 
-            // ground check + basic ground/air state
             isGrounded = movement.UpdateGrounded(out groundHit);
 
-            if (isGrounded)
-                airTime = 0f;
-            else
-                airTime += dt;
-
-            // drift + NOS + jump + movement
             drift.Tick(dt, isGrounded);
             nos.Tick(dt, isGrounded);
             jump.Tick(dt, isGrounded);
             movement.Tick(dt, isGrounded);
 
-            // optional extra gravity
             movement.ApplyGravity(dt, isGrounded, ref airTime);
+
+            if (!isGrounded)
+            {
+                if (movement.TryPredictLanding(airTime, out var land, drawSpheres: true))
+                {
+                    if (movement.IsBadLandingEdge(land, out var why, out int miss, out float worstDrop))
+                    {
+                        if (!edgeWarnedThisAir)
+                        {
+                            Debug.Log(
+                                $"[EDGE WARNING]\n" +
+                                $"Why: {why}\n" +
+                                $"WorstDrop: {worstDrop:F2}\n" +
+                                $"MissCount: {miss}\n" +
+                                $"TimeToLand: {land.time:F2}\n" +
+                                $"Point: {land.point}"
+                            );
+
+                            edgeWarnedThisAir = true;
+                        }
+
+                        movement.ApplyEdgeClearAssist(land, miss, worstDrop);
+                    }
+                }
+            }
+           else
+            {
+                edgeWarnedThisAir = false;
+                movement.ResetEdgeAssistLatch();
+            }
         }
+
 
         // ------------ INPUT API ------------
         public void ProvideInputs(float steer, float accel, float brake)
