@@ -31,6 +31,9 @@ using DG.Tweening;
         [Header("Jump")]
         public JumpModule jump = new JumpModule();
 
+        [Header("Grind")]
+        public GrindModule grind = new GrindModule();
+
         [Header("Audio")]
         public AudioSource engineSound;
         public float minPitch = 0.8f;
@@ -70,6 +73,8 @@ using DG.Tweening;
             drift.Init(this);
             nos.Init(this);
             jump.Init(this);
+            grind.Init(this);
+        
         }
 
         void Update()
@@ -91,6 +96,7 @@ using DG.Tweening;
             nos.Tick(dt, isGrounded);
             jump.Tick(dt, isGrounded);
             movement.Tick(dt, isGrounded);
+            grind.Tick(dt,isGrounded);
 
             movement.ApplyGravity(dt, isGrounded, ref airTime);
 
@@ -223,27 +229,20 @@ using DG.Tweening;
             return isGrounded;
         }
 
+    void OnTriggerEnter(Collider other)
+    {
+        Debug.Log(other.gameObject.name);
+        var rail = other.GetComponentInParent<GrindRail>();
 
-        void OnTriggerEnter(Collider other)
+        if (rail != null)
         {
-            var bowl = other.GetComponent<BowlZone>();
-            if (bowl != null)
-        {
-                Debug.Log("Entered");
-                activeBowl = bowl;
-            
+            Debug.Log("Hit rail lmao");
+            //grind.TryEnter(rail);
         }
-        }
+    }
 
-        void OnTriggerExit(Collider other)
-        {
-            var bowl = other.GetComponent<BowlZone>();
-            if (bowl != null && activeBowl == bowl)
-                activeBowl = null;
-        }
-
-        // ------------ DEBUG GUI ------------
-        void OnGUI()
+    // ------------ DEBUG GUI ------------
+    void OnGUI()
         {
             GUI.color = Color.white;
             GUI.Box(new Rect(20, 20, 260, 150), "Curve + NOS Debug");
